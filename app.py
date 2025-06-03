@@ -4,14 +4,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-# Configuración de la página
 st.set_page_config(page_title="Cálculo Simbólico", layout="wide")
-st.title("App Maestría Matemática-UNACH")
+st.title("App Maestria Matemática-UNACH")
 
-# Símbolos matemáticos
 x, y, z = sp.symbols("x y z")
 
-# Menú lateral
 opcion = st.sidebar.selectbox("Selecciona una operación:", [
     "Derivadas", "Integrales", "Matrices", "Sistemas lineales", "Sistemas cuadráticos"
 ])
@@ -76,201 +73,23 @@ elif opcion == "Integrales":
 
 elif opcion == "Matrices":
     st.header("📐 Operaciones con Matrices")
-    
-    # Configuración de la matriz
-    col1, col2 = st.columns(2)
-    with col1:
-        n = st.number_input("Tamaño de la matriz (filas):", min_value=2, max_value=5, value=2)
-    with col2:
-        m = st.number_input("Tamaño de la matriz (columnas):", min_value=2, max_value=5, value=2)
-    
-    # Ingreso de la matriz A
-    st.subheader("Matriz A")
-    matriz_A = []
+    n = st.number_input("Tamaño de la matriz cuadrada:", min_value=2, max_value=5, value=2)
+    matriz = []
     for i in range(n):
-        cols = st.columns(m)
+        cols = st.columns(n)
         fila = []
-        for j in range(m):
-            val = cols[j].number_input(f"A[{i+1},{j+1}]", value=1.0 if i == j else 0.0, key=f"A{i}{j}")
+        for j in range(n):
+            val = cols[j].number_input(f"A[{i+1},{j+1}]", value=0.0, key=f"A{i}{j}")
             fila.append(val)
-        matriz_A.append(fila)
-    A = sp.Matrix(matriz_A)
-    
-    # Ingreso de la matriz B (para operaciones binarias)
-    st.subheader("Matriz B (para operaciones entre matrices)")
-    matriz_B = []
-    for i in range(n):
-        cols = st.columns(m)
-        fila = []
-        for j in range(m):
-            val = cols[j].number_input(f"B[{i+1},{j+1}]", value=1.0, key=f"B{i}{j}")
-            fila.append(val)
-        matriz_B.append(fila)
-    B = sp.Matrix(matriz_B)
-    
-    # Mostrar matrices
-    st.write("**Matriz A:**")
+        matriz.append(fila)
+    A = sp.Matrix(matriz)
+    st.write("**Matriz ingresada:**")
     st.latex(sp.latex(A))
-    st.write("**Matriz B:**")
-    st.latex(sp.latex(B))
-    
-    # Selección de operaciones
-    operacion = st.selectbox("Seleccione una operación:", [
-        "Propiedades básicas", 
-        "Operaciones binarias", 
-        "Descomposiciones", 
-        "Visualización 3D"
-    ])
-    
-    if operacion == "Propiedades básicas":
-        st.subheader("Propiedades de la Matriz A")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.write("**Determinante:**")
-            st.latex(sp.latex(A.det()))
-            
-            st.write("**Traza (suma diagonal):**")
-            st.latex(sp.latex(A.trace()))
-            
-            st.write("**Transpuesta:**")
-            st.latex(sp.latex(A.T))
-            
-        with col2:
-            st.write("**Rango:**")
-            st.latex(sp.latex(A.rank()))
-            
-            if A.det() != 0:
-                st.write("**Inversa:**")
-                st.latex(sp.latex(A.inv()))
-            else:
-                st.warning("La matriz no es invertible (determinante = 0)")
-            
-            st.write("**Forma escalonada reducida:**")
-            st.latex(sp.latex(A.rref()[0]))
-    
-    elif operacion == "Operaciones binarias":
-        st.subheader("Operaciones entre A y B")
-        
-        op_binaria = st.radio("Operación:", [
-            "Suma (A+B)", 
-            "Resta (A-B)", 
-            "Multiplicación (A*B)", 
-            "Producto Hadamard (A∘B)",
-            "Producto Kronecker (A⊗B)"
-        ])
-        
-        if op_binaria == "Suma (A+B)":
-            resultado = A + B
-        elif op_binaria == "Resta (A-B)":
-            resultado = A - B
-        elif op_binaria == "Multiplicación (A*B)":
-            if A.cols == B.rows:
-                resultado = A * B
-            else:
-                st.error("Las dimensiones no son compatibles para multiplicación")
-                return
-        elif op_binaria == "Producto Hadamard (A∘B)":
-            if A.shape == B.shape:
-                resultado = A.multiply_elementwise(B)
-            else:
-                st.error("Las matrices deben tener la misma dimensión")
-                return
-        elif op_binaria == "Producto Kronecker (A⊗B)":
-            resultado = sp.kronecker_product(A, B)
-        
-        st.write(f"**Resultado de {op_binaria}:**")
-        st.latex(sp.latex(resultado))
-    
-    elif operacion == "Descomposiciones":
-        st.subheader("Descomposiciones Matriciales")
-        
-        descomp = st.selectbox("Seleccione descomposición:", [
-            "LU", 
-            "QR", 
-            "Descomposición espectral"
-        ])
-        
-        if descomp == "LU":
-            try:
-                L, U, _ = A.LUdecomposition()
-                st.write("**Matriz triangular inferior (L):**")
-                st.latex(sp.latex(L))
-                st.write("**Matriz triangular superior (U):**")
-                st.latex(sp.latex(U))
-            except Exception as e:
-                st.error(f"No se pudo realizar la descomposición LU: {e}")
-        
-        elif descomp == "QR":
-            try:
-                Q, R = A.QRdecomposition()
-                st.write("**Matriz ortogonal (Q):**")
-                st.latex(sp.latex(Q))
-                st.write("**Matriz triangular superior (R):**")
-                st.latex(sp.latex(R))
-            except Exception as e:
-                st.error(f"No se pudo realizar la descomposición QR: {e}")
-        
-        elif descomp == "Descomposición espectral":
-            try:
-                if A.is_symmetric():
-                    eigenvects = A.eigenvects()
-                    st.write("**Autovalores y autovectores:**")
-                    for val, mult, vecs in eigenvects:
-                        st.latex(f"\\lambda = {sp.latex(val)}")
-                        st.write("Autovectores correspondientes:")
-                        for v in vecs:
-                            st.latex(sp.latex(v))
-                else:
-                    st.warning("La matriz no es simétrica (la descomposición espectral requiere una matriz simétrica)")
-            except Exception as e:
-                st.error(f"Error en la descomposición espectral: {e}")
-    
-    elif operacion == "Visualización 3D":
-        st.subheader("Visualización de Matrices 3D")
-        
-        if n == 3 and m == 3:
-            fig = plt.figure(figsize=(10, 8))
-            ax = fig.add_subplot(111, projection='3d')
-            
-            # Convertir a numpy para visualización
-            A_np = np.array(A).astype(float)
-            
-            # Vectores originales (ejes)
-            orig = np.array([0, 0, 0])
-            ejes = np.eye(3)
-            
-            # Vectores transformados
-            transformados = A_np @ ejes
-            
-            # Dibujar ejes originales
-            for i, color in enumerate(['r', 'g', 'b']):
-                ax.quiver(*orig, *ejes[i], color=color, arrow_length_ratio=0.1, 
-                         label=f'Eje {"XYZ"[i]} original', linewidth=2)
-            
-            # Dibujar vectores transformados
-            for i, color in enumerate(['c', 'm', 'y']):
-                ax.quiver(*orig, *transformados[i], color=color, arrow_length_ratio=0.1, 
-                         label=f'Transformado {"XYZ"[i]}', linestyle='--')
-            
-            ax.set_xlim([-3, 3])
-            ax.set_ylim([-3, 3])
-            ax.set_zlim([-3, 3])
-            ax.set_xlabel('X')
-            ax.set_ylabel('Y')
-            ax.set_zlabel('Z')
-            ax.set_title('Transformación Lineal 3D')
-            ax.legend()
-            
-            st.pyplot(fig)
-            
-            # Mostrar determinante como factor de escala volumétrico
-            det = np.linalg.det(A_np)
-            st.write(f"**Determinante (factor de escala volumétrico):** {det:.2f}")
-            
-            if abs(det) < 1e-5:
-                st.warning("La transformación colapsa el espacio (determinante cercano a cero)")
-        else:
-            st.warning("La visualización 3D solo está disponible para matrices 3x3")
+    st.write("**Determinante:**", A.det())
+    if A.det() != 0:
+        st.write("**Inversa:**")
+        st.latex(sp.latex(A.inv()))
+    st.write("**Rango:**", A.rank())
 
 elif opcion == "Sistemas lineales":
     st.header("🧾 Sistema de Ecuaciones Lineales")
@@ -341,11 +160,3 @@ elif opcion == "Sistemas cuadráticos":
                 st.warning("No se encontraron soluciones.")
         except Exception as e:
             st.error(f"Error: {e}")
-
-# Notas al pie
-st.sidebar.markdown("---")
-st.sidebar.info("""
-**App de Cálculo Simbólico**  
-Desarrollado para la Maestría en Matemáticas - UNACH  
-Usando SymPy, NumPy y Streamlit
-""")
